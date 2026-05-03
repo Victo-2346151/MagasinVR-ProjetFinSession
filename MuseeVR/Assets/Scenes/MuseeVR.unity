@@ -178,7 +178,7 @@ PrefabInstance:
     - target: {fileID: 9003909383353620830, guid: 829a9b50fa500b64284dfb3b9c1d8a99, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 01ef25a3610a1364c8909ae13d97200f, type: 2}
+      objectReference: {fileID: 2100000, guid: 6a3cbb08bf308934995faccb5f28db22, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3530,6 +3530,14 @@ PrefabInstance:
     - target: {fileID: 544001169596706969, guid: 829a9b50fa500b64284dfb3b9c1d8a99, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 1972262968321843633, guid: 829a9b50fa500b64284dfb3b9c1d8a99, type: 3}
+      propertyPath: nomArtiste
+      value: "L\xE9onard de Vinci"
+      objectReference: {fileID: 0}
+    - target: {fileID: 1972262968321843633, guid: 829a9b50fa500b64284dfb3b9c1d8a99, type: 3}
+      propertyPath: titrePeinture
+      value: La Joconde
       objectReference: {fileID: 0}
     - target: {fileID: 2444861145262474148, guid: 829a9b50fa500b64284dfb3b9c1d8a99, type: 3}
       propertyPath: m_Name
