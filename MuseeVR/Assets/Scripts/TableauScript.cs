@@ -6,24 +6,28 @@ using TMPro;
 [RequireComponent(typeof(XRGrabInteractable))]
 public class TableauScript : MonoBehaviour
 {
-    [Header("Informations du tableau")]
-    [SerializeField] private string titrePeinture = "Sans titre";
-    [SerializeField] private string nomArtiste = "Artiste inconnu";
-    [SerializeField, TextArea] private string descriptionTexte = "Description du tableau...";
+    [Header("Informations")]
+    [SerializeField] private string titreVille = "Ville";
+    [SerializeField] private string pays = "Maroc";
+    [SerializeField, TextArea] private string descriptionTexte = "Description...";
 
     [Header("Audio")]
     [SerializeField] private AudioClip descriptionAudio;
 
-    [Header("UI Références")]
+    [Header("UI Panneau tableau")]
     [SerializeField] private GameObject panneauInfo;
-    [SerializeField] private GameObject panneauDescription;
-    [SerializeField] private TextMeshProUGUI texteContenu;
+    [SerializeField] private TextMeshProUGUI texteTitre;
+    [SerializeField] private TextMeshProUGUI texteArtiste;
+
+    [Header("UI Popup caméra")]
+    // FindFirstObjectByType car le popup est sur la caméra, pas sur le tableau
+    // (solution suggérée par Claude AI)
+    private GameObject canvasPopup;
+    private TextMeshProUGUI textePopup;
 
     private XRGrabInteractable grabInteractable;
     private AudioSource audioSource;
     private bool dejaExamine = false;
-    private bool descriptionVisible = false;
-    private bool audioEnCours = false;
 
     void Awake()
     {
@@ -33,6 +37,41 @@ public class TableauScript : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.spatialBlend = 1f;
+        }
+    }
+
+    void Start()
+    {
+        if (texteTitre != null)
+            texteTitre.text = titreVille;
+
+        if (texteArtiste != null)
+            texteArtiste.text = pays;
+
+        // Cherche dans tous les objets incluant inactifs
+        // (solution suggérée par Claude AI)
+        Canvas[] tousLesCanvas = Resources.FindObjectsOfTypeAll<Canvas>();
+        foreach (Canvas canvas in tousLesCanvas)
+        {
+            if (canvas.name == "CanvasPopup")
+            {
+                canvasPopup = canvas.gameObject;
+                Transform textePopupTrans = canvasPopup.transform.Find("TextePopup");
+                if (textePopupTrans != null)
+                    textePopup = textePopupTrans.GetComponent<TextMeshProUGUI>();
+                break;
+            }
+        }
+
+        // Désactiver le popup au démarrage
+        if (canvasPopup != null)
+        {
+            canvasPopup.SetActive(false);
+            Debug.Log("CanvasPopup trouvé et désactivé !");
+        }
+        else
+        {
+            Debug.Log("CanvasPopup NON trouvé !");
         }
     }
 
@@ -50,16 +89,23 @@ public class TableauScript : MonoBehaviour
 
     private void OnGrab(SelectEnterEventArgs args)
     {
+        // Vibration au grab — pattern cours exercice 4.1
+        XRBaseController controleur = args.interactorObject
+            .transform.GetComponent<XRBaseController>();
+        if (controleur != null)
+            controleur.SendHapticImpulse(0.3f, 0.1f);
+
         if (panneauInfo != null)
             panneauInfo.SetActive(true);
 
         if (!dejaExamine)
         {
             dejaExamine = true;
-            // TEMPORAIRE - décommenter quand MuseeManager sera créé
-            // MuseeManager museeManager = FindFirstObjectByType<MuseeManager>();
-            // if (museeManager != null)
-            //     museeManager.TableauExamine();
+            // FindFirstObjectByType car tableaux placés manuellement
+            // (solution suggérée par Claude AI)
+            MuseeManager museeManager = FindFirstObjectByType<MuseeManager>();
+            if (museeManager != null)
+                museeManager.TableauExamine();
         }
     }
 
@@ -68,7 +114,7 @@ public class TableauScript : MonoBehaviour
         if (panneauInfo != null)
             panneauInfo.SetActive(false);
 
-        CacherDescription();
+        FermerPopup();
         ArreterAudio();
     }
 
@@ -76,42 +122,59 @@ public class TableauScript : MonoBehaviour
     public void AfficherDescription()
     {
         ArreterAudio();
-        descriptionVisible = true;
+        if (canvasPopup != null)
+            canvasPopup.SetActive(true);
+        else
+        {
+            Debug.Log("canvasPopup est NULL !");
+            return;
+        }
 
-        if (panneauDescription != null)
-            panneauDescription.SetActive(true);
+        if (textePopup != null)
+        {
+            textePopup.text = descriptionTexte;
+            Debug.Log("textePopup trouvé : " + textePopup.name);
+        }
+        else
+            Debug.Log("textePopup est NULL !");
 
-        if (texteContenu != null)
-            texteContenu.text = descriptionTexte;
+        Transform titreTrans = canvasPopup.transform.Find("TexteTitrePopup");
+        if (titreTrans != null)
+        {
+            TextMeshProUGUI titrePop = titreTrans.GetComponent<TextMeshProUGUI>();
+            if (titrePop != null)
+            {
+                titrePop.text = titreVille;
+                Debug.Log("Titre popup : " + titreVille);
+            }
+            else
+                Debug.Log("TexteTitrePopup - composant TMP introuvable !");
+        }
+        else
+            Debug.Log("TexteTitrePopup - objet introuvable !");
     }
 
     // Appelé par le bouton Audio
     public void JouerAudio()
     {
-        CacherDescription();
-
+        FermerPopup();
         if (descriptionAudio != null)
         {
-            audioEnCours = true;
             audioSource.clip = descriptionAudio;
             audioSource.Play();
         }
     }
 
-    // Appelé par le bouton Fermer
-    public void CacherDescription()
+    // Appelé par le bouton Fermer du popup
+    public void FermerPopup()
     {
-        descriptionVisible = false;
-        if (panneauDescription != null)
-            panneauDescription.SetActive(false);
+        if (canvasPopup != null)
+            canvasPopup.SetActive(false);
     }
 
     private void ArreterAudio()
     {
-        if (audioEnCours)
-        {
+        if (audioSource != null && audioSource.isPlaying)
             audioSource.Stop();
-            audioEnCours = false;
-        }
     }
 }
