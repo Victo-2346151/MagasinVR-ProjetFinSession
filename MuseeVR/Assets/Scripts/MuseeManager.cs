@@ -20,8 +20,13 @@ public class MuseeManager : MonoBehaviour
 
         if (nombreTableauxExamines >= nombreTotalTableaux)
         {
+            // Activer la porte de sortie
             if (sortie != null)
                 sortie.ActiverSortie();
+
+            // Afficher le canvas visite complète directement
+            if (gameManager != null)
+                gameManager.VisiteComplete();
         }
     }
 
@@ -30,7 +35,7 @@ public class MuseeManager : MonoBehaviour
         if (texteProgression != null)
         {
             texteProgression.text = nombreTableauxExamines + "/"
-                + nombreTotalTableaux + " tableaux examinés";
+                + nombreTotalTableaux + " villes visitées";
         }
     }
 }
